@@ -18,8 +18,9 @@ else:  # pragma: <3.11 cover
 
 from parsl.config import Config
 from parsl.executors import HighThroughputExecutor
-from parsl.launchers import WrappedLauncher
-from parsl.providers import LocalProvider
+from parsl.launchers import WrappedLauncher, SrunLauncher
+from parsl.providers import LocalProvider, SlurmProvider
+from parsl.usage_tracking.levels import LEVEL_3
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import model_validator
@@ -224,6 +225,62 @@ class InferenceTrainWorkstationConfig(BaseComputeConfig):
             ],
         )
 
+class THConfig(BaseComputeConfig):
+    """
+    TH compute config.
+    """
+    name: Literal['th'] = 'th' # type: ignore[assignment]
+
+    # We have a long idletime to ensure train/inference executors are not
+    # shut down (to enable warmstarts) while simulations are running.
+    max_idletime: float = Field(
+        default=60.0 * 10,
+        description='The maximum idle time allowed for an executor before '
+        'strategy could shut down unused blocks. Default is 10 minutes.',
+    )
+
+    def _get_htex(self, label: str, nodes_per_block: int, cores_per_node: int) -> HighThroughputExecutor:
+        return HighThroughputExecutor(
+            label=label,
+            # cores_per_worker=72,
+            # cpu_affinity='alternating',
+            # prefetch_capacity=0,
+            worker_debug=False,
+            provider=SlurmProvider(
+                partition="thcp3", # -p = thcp3
+                # account=None, # 默认不处理
+                # qoe # 默认不处理
+                # channel # 默认不处理
+                nodes_per_block=nodes_per_block, # -N 1
+                cores_per_node=cores_per_node, # -n 4
+                # mem_per_node 
+                # init_blocks=1, 
+                # min_blocks=1, 
+                # max_blocks=1,
+                # parallelism 
+                # walltime 
+                # scheduler_options
+                # regex_job_id 
+                worker_init='cd /thfs3/home/sysu__netlab/xlc_DL_lab/packages/deepdrivewe && module load Miniforge/24.7.1-2 && mamba activate deepdrivewe',
+                exclusive=True,
+                launcher=SrunLauncher(),
+                # move_files
+            ),
+        )
+
+    def get_parsl_config(self, run_dir: str | Path) -> Config:
+        """Generate a Parsl configuration."""
+        return Config(
+            run_dir=str(run_dir),
+            max_idletime=self.max_idletime,
+            executors=[
+                # Assign 1 node each for training and inference
+                self._get_htex('train_htex', 1, 1),
+                self._get_htex('inference_htex', 1, 1),
+                # Assign the remaining nodes to the simulation
+                self._get_htex('simulation_htex', 1, 1),
+            ],
+        )
 
 class VistaConfig(BaseComputeConfig):
     """VISTA compute config.
@@ -276,6 +333,7 @@ class VistaConfig(BaseComputeConfig):
                 # Assign the remaining nodes to the simulation
                 self._get_htex('simulation_htex', self.num_nodes - 2),
             ],
+            usage_tracking=LEVEL_3,
         )
 
 
@@ -285,4 +343,5 @@ ComputeConfigTypes = Union[
     HybridWorkstationConfig,
     InferenceTrainWorkstationConfig,
     VistaConfig,
+    THConfig,
 ]

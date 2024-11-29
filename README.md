@@ -1,6 +1,10 @@
 # deepdrivewe
 Implementation of [WESTPA](https://westpa.github.io/westpa/index.html) using [Colmena](https://github.com/exalearn/colmena/tree/master).
 
+```bash
+cd /thfs3/home/sysu__netlab/yangyf/ && ZDOTDIR=$PWD zsh
+```
+
 ## Installation
 
 To install the package, run the following command:
@@ -112,3 +116,4 @@ To test the code, run the following command:
 pre-commit run --all-files
 tox -e py310
 ```
+yhrun -N 1 -p thcp3 /thfs3/home/sysu__netlab/xlc_DL_lab/packages/deepdrivewe/examples/openmm_ntl9_ddwe_vista/submit.sh

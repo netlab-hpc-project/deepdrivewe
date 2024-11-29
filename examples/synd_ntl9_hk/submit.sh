@@ -19,8 +19,8 @@ cd /thfs3/home/sysu__netlab/xlc_DL_lab/packages/deepdrivewe
 mamba activate deepdrivewe
 
 # Get the config file for this example
-CONFIG_FILE=/thfs3/home/sysu__netlab/xlc_DL_lab/packages/deepdrivewe/examples/openmm_ntl9_ddwe_vista/config.yaml
+CONFIG_FILE=/thfs3/home/sysu__netlab/xlc_DL_lab/packages/deepdrivewe/examples/synd_ntl9_hk/config.yaml
 
 # Run the example
 echo "start run the example"
-python -m deepdrivewe.examples.openmm_ntl9_ddwe.main --config $CONFIG_FILE
+python -m deepdrivewe.examples.synd_ntl9_hk.main --config $CONFIG_FILE
