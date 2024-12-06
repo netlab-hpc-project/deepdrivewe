@@ -5,6 +5,8 @@
 # gitignore template for Jupyter Notebooks
 # website: http://jupyter.org/
 
+offline_dependency/*
+
 runs/*
 cmd_parsl.*
 
